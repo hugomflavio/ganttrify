@@ -60,7 +60,12 @@ ganttrify <- function(project,
                        end_date = zoo::as.Date(end_date_yearmon, frac = 1))
   } else {
     if (exact_date==TRUE) {
-      #do nothing
+      df <-  project %>% 
+        dplyr::mutate(start_date = as.Date(start_date), end_date = as.Date(end_date))
+      
+      df_yearmon <- df %>% 
+        dplyr::mutate(start_date = zoo::as.Date(zoo::as.yearmon(start_date), frac = 0),
+                    end_date = zoo::as.Date(zoo::as.yearmon(end_date), frac = 1))
     } else {
       df_yearmon <- project %>% 
         dplyr::mutate(start_date_yearmon = zoo::as.yearmon(start_date),
@@ -73,29 +78,12 @@ ganttrify <- function(project,
     }
   }
   
-  if (exact_date==TRUE) {
-    df <-  project %>% 
-      dplyr::mutate(start_date = as.Date(start_date), end_date = as.Date(end_date))
+  date_range_matrix <- matrix(as.numeric(seq.Date(from = min(df_yearmon[["start_date"]]),
+                                                  to = max(df_yearmon[["end_date"]]) + 30,
+                                                  by = "1 month")),
+                              ncol = 2,
+                              byrow = TRUE)
     
-    df_yearmon <- df %>% 
-      dplyr::mutate(start_date = zoo::as.Date(zoo::as.yearmon(start_date), frac = 0),
-                    end_date = zoo::as.Date(zoo::as.yearmon(end_date), frac = 1))
-    
-    date_range_matrix <- matrix(as.numeric(seq.Date(from = min(df_yearmon[["start_date"]]),
-                                                    to = max(df_yearmon[["end_date"]]),
-                                                    by = "1 month")),
-                                ncol = 2,
-                                byrow = TRUE)
-    
-  } else {
-    date_range_matrix <- matrix(as.numeric(seq.Date(from = min(df_yearmon[["start_date"]]),
-                                                    to = max(df_yearmon[["end_date"]]),
-                                                    by = "1 month")),
-                                ncol = 2,
-                                byrow = TRUE)
-  }
-
-  
   date_range_df <- tibble::tibble(start = zoo::as.Date.numeric(date_range_matrix[,1]),
                                   end = zoo::as.Date.numeric(date_range_matrix[,2]))
   
